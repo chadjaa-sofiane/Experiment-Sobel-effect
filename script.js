@@ -28,10 +28,64 @@ const gray = (data) => {
     }
 }
 
+const getPexilData = (data) => {
+    return (x, y) => {
+        const i = (y * data.width + x) * 4;
+        return [
+            data.data[i] || 0,
+            data.data[i + 1] || 0,
+            data.data[i + 2] || 0,
+            data.data[i + 3] || 0
+        ]
+    }
+}
+
+const sobelX = (data) => {
+    const gpd = getPexilData(data);
+    return (x, y) => {
+        return gpd(x - 1, y - 1)[0] * -1 +
+            gpd(x, y - 1)[0] * -2 +
+            gpd(x + 1, y - 1)[0] * -1 +
+            gpd(x - 1, y + 1)[0] * 1 +
+            gpd(x, y + 1)[0] * 2 +
+            gpd(x + 1, y + 1)[0] * 1;
+    }
+}
+
+const sobelY = (data) => {
+    const gpd = getPexilData(data);
+    return (x, y) => {
+        return gpd(x - 1, y - 1)[0] * -1 +
+            gpd(x - 1, y)[0] * -2 +
+            gpd(x - 1, y + 1)[0] * -1 +
+            gpd(x + 1, y - 1)[0] * 1 +
+            gpd(x + 1, y)[0] * 2 +
+            gpd(x + 1, y + 1)[0] * 1;
+    }
+}
+
+const sobel = (data) => {
+    const sobelx = sobelX(data);
+    const sobely = sobelY(data);
+    for (let y = 0; y < data.height; y++) {
+        for (let x = 0; x < data.width; x++) {
+            const i = (y * data.width + x) * 4;
+            const sobel = Math.sqrt(sobelx(x, y) ** 2 + sobely(x, y) ** 2);
+            const color = sobel > 255 ? 0 : 255;
+            data.data[i] = color;
+            data.data[i + 1] = color;
+            data.data[i + 2] = color;
+            data.data[i + 3] = 255;
+        }
+    }
+}
+
 const drawImage = () => {
     ctx.drawImage(image, canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
     const imageData = ctx.getImageData(canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
+    // console.log(sobelY(imageData)(250, 250));
     gray(imageData);
+    sobel(imageData);
     ctx.putImageData(imageData, canavs.width / 2 - 256, canavs.height / 2 - 256);
 }
 
