@@ -67,26 +67,28 @@ const sobelY = (data) => {
 const sobel = (data) => {
     const sobelx = sobelX(data);
     const sobely = sobelY(data);
+    let result = []
     for (let y = 0; y < data.height; y++) {
         for (let x = 0; x < data.width; x++) {
             const i = (y * data.width + x) * 4;
             const sobel = Math.sqrt(sobelx(x, y) ** 2 + sobely(x, y) ** 2);
-            const color = sobel > 255 ? 0 : 255;
-            data.data[i] = color;
-            data.data[i + 1] = color;
-            data.data[i + 2] = color;
-            data.data[i + 3] = 255;
+            const color = sobel > 80 ? 255 : 0;
+            result[i] = color;
+            result[i + 1] = color;
+            result[i + 2] = color;
+            result[i + 3] = 255;
         }
     }
+    return result
 }
 
 const drawImage = () => {
     ctx.drawImage(image, canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
     const imageData = ctx.getImageData(canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
-    // console.log(sobelY(imageData)(250, 250));
     gray(imageData);
-    sobel(imageData);
-    ctx.putImageData(imageData, canavs.width / 2 - 256, canavs.height / 2 - 256);
+    const sobelClampedArray = new Uint8ClampedArray(sobel(imageData));
+    const sobelImageData = new ImageData(sobelClampedArray, 512, 512);
+    ctx.putImageData(sobelImageData, canavs.width / 2 - 256, canavs.height / 2 - 256);
 }
 
 image.addEventListener("load", drawImage)
@@ -112,6 +114,6 @@ const updateCanvasSize = throtling(() => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     drawImage();
-}, 1000);
+}, 250);
 
 window.addEventListener("resize", updateCanvasSize)
