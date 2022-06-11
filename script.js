@@ -1,94 +1,67 @@
 import imageSrc from "./imageSrc.js";
+import getImageSrc from "./fileLoader.js";
+import gray from "./gray.js";
+import sobel from "./sobel.js";
+
 const canavs = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const imageInput = document.getElementById('image-input');
+const mouseRadiusInput = document.getElementById('mouse-radius-input');
+
+imageInput.addEventListener("change", async (e) => {
+    const files = e.currentTarget.files || [];
+    const src = await getImageSrc(files[0]);
+    image.src = src;
+})
 
 const image = new Image();
 image.src = imageSrc;
 canavs.width = window.innerWidth;
 canavs.height = window.innerHeight;
 
-const gray = (data) => {
-    // we could do it like this
-    // for (let i = 0; i < data.length; i += 4) {
-    //     const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    //     data[i] = gray;
-    //     data[i + 1] = gray;
-    //     data[i + 2] = gray;
-    // }
-
-    // but this to show you how to detect the x and y of the pixel
-    for (let y = 0; y < data.height; y++) {
-        for (let x = 0; x < data.width; x++) {
-            const i = (y * data.width + x) * 4;
-            const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
-            data.data[i] = gray;
-            data.data[i + 1] = gray;
-            data.data[i + 2] = gray;
-        }
-    }
+const mouse = {
+    x: 0,
+    y: 0,
+    radius: 100
 }
 
-const getPexilData = (data) => {
-    return (x, y) => {
-        const i = (y * data.width + x) * 4;
-        return [
-            data.data[i] || 0,
-            data.data[i + 1] || 0,
-            data.data[i + 2] || 0,
-            data.data[i + 3] || 0
-        ]
-    }
-}
+document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
 
-const sobelX = (data) => {
-    const gpd = getPexilData(data);
-    return (x, y) => {
-        return gpd(x - 1, y - 1)[0] * -1 +
-            gpd(x, y - 1)[0] * -2 +
-            gpd(x + 1, y - 1)[0] * -1 +
-            gpd(x - 1, y + 1)[0] * 1 +
-            gpd(x, y + 1)[0] * 2 +
-            gpd(x + 1, y + 1)[0] * 1;
-    }
-}
-
-const sobelY = (data) => {
-    const gpd = getPexilData(data);
-    return (x, y) => {
-        return gpd(x - 1, y - 1)[0] * -1 +
-            gpd(x - 1, y)[0] * -2 +
-            gpd(x - 1, y + 1)[0] * -1 +
-            gpd(x + 1, y - 1)[0] * 1 +
-            gpd(x + 1, y)[0] * 2 +
-            gpd(x + 1, y + 1)[0] * 1;
-    }
-}
-
-const sobel = (data) => {
-    const sobelx = sobelX(data);
-    const sobely = sobelY(data);
-    let result = []
-    for (let y = 0; y < data.height; y++) {
-        for (let x = 0; x < data.width; x++) {
-            const i = (y * data.width + x) * 4;
-            const sobel = Math.sqrt(sobelx(x, y) ** 2 + sobely(x, y) ** 2);
-            const color = sobel > 80 ? 255 : 0;
-            result[i] = color;
-            result[i + 1] = color;
-            result[i + 2] = color;
-            result[i + 3] = 255;
-        }
-    }
-    return result
-}
+mouseRadiusInput.addEventListener("change", (e) => {
+    const { value, min, max } = e.target;
+    if (value < min) e.target.value = min;
+    if (value > max) e.target.value = max;
+    mouse.radius = value;
+})
 
 const drawImage = () => {
     ctx.drawImage(image, canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
     const imageData = ctx.getImageData(canavs.width / 2 - 256, canavs.height / 2 - 256, 512, 512);
-    gray(imageData);
-    const sobelClampedArray = new Uint8ClampedArray(sobel(imageData));
-    const sobelImageData = new ImageData(sobelClampedArray, 512, 512);
+    const grayImageData = gray(imageData);
+    const sobelImageData = sobel(grayImageData);
+    const imageLeft = canavs.width / 2 - 256;
+    const imageTop = canavs.height / 2 - 256;
     ctx.putImageData(sobelImageData, canavs.width / 2 - 256, canavs.height / 2 - 256);
+
+    const animate = () => {
+        ctx.clearRect(0, 0, canavs.width, canavs.height);
+        ctx.putImageData(sobelImageData, imageLeft, imageTop);
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 5;
+        ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2);
+        ctx.stroke()
+        ctx.clip();
+        ctx.clearRect(mouse.x - mouse.radius, mouse.y - mouse.radius, mouse.radius * 2, mouse.radius * 2);
+        ctx.drawImage(image, imageLeft, imageTop, 512, 512);
+        ctx.restore();
+        requestAnimationFrame(animate);
+    }
+    animate();
 }
 
 image.addEventListener("load", drawImage)
@@ -113,7 +86,8 @@ const throtling = (func, wait) => {
 const updateCanvasSize = throtling(() => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
     drawImage();
-}, 250);
+}, 150);
 
 window.addEventListener("resize", updateCanvasSize)
