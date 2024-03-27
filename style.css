@@ -31,19 +31,38 @@ body {
   align-items: center;
   border: 1px solid#fff;
 }
-
 .upload-button {
-  --opacity: 0.5;
-  --color: hsl(0, 0%, 100%, var(--opacity));
-  color: var(--color);
-  border: 1px var(--color) solid;
-  padding: 0.5em 1em;
+  --opacity: 0.8; /* Increased opacity for better visibility */
+  --color: hsl(
+    200,
+    80%,
+    50%,
+    var(--opacity)
+  ); /* Changed to a nice blue shade */
+  color: white; /* Text color set to white for better contrast */
+  border: none; /* Removed border */
+  padding: 0.8em 1.2em; /* Increased padding for a bigger button */
   cursor: pointer;
   margin-left: 1em;
+  background-color: var(
+    --color
+  ); /* Background color set to the custom color variable */
+  border-radius: 4px; /* Added a small border radius for a softer look */
+  font-size: 1rem; /* Increased font size for better readability */
+  font-weight: 500; /* Slightly increased font weight */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Added a subtle box shadow */
+  transition: background-color 0.2s ease-in-out; /* Added a transition for a smooth effect on hover */
 }
+
 .upload-button:hover {
-  --opacity: 1;
+  background-color: hsl(
+    200,
+    80%,
+    40%,
+    var(--opacity)
+  ); /* Darker shade on hover */
 }
+
 .mouse-radius-input {
   --opacity: 0.5;
   --color: hsl(0, 0%, 100%, var(--opacity));
