@@ -17,7 +17,7 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  background-color: black;
+  background-color: #111111;
   cursor: zoom-in;
 }
 .inputs__dield {
