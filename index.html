@@ -11,17 +11,21 @@
     <canvas id="canvas"></canvas>
     <div class="inputs__field">
       <input type="file" id="image-input" hidden />
-      <labal class="cercle-radius-label">
-        <p>cercle raduis :</p>
-        <input
-          type="number"
-          id="mouse-radius-input"
-          class="mouse-radius-input"
-          value="100"
-          max="400"
-          min="0"
-        />
-      </labal>
+      <div class="cercle-radius-label">
+        <label for="mouse-radius-input">Mouse Radius:</label>
+        <div class="input-group">
+          <button class="input-group-button" data-action="decrement">-</button>
+          <input
+            type="number"
+            id="mouse-radius-input"
+            class="mouse-radius-input"
+            value="100"
+            max="400"
+            min="0"
+          />
+          <button class="input-group-button" data-action="increment">+</button>
+        </div>
+      </div>
       <label for="image-input" class="upload-button"> Upload </label>
     </div>
     <script src="script.js" type="module"></script>
